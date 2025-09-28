@@ -1,0 +1,38 @@
+.footer {
+    width: 100%;
+    background: #24262a;
+    color: #aaa;
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 1rem;
+    font-family: monospace;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-link {
+    color: #578fff;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+.footer-content span {
+    display: block;
+}
+
+@media (max-width: 1000px) {
+    .footer {
+        display: none;
+    }
+}
