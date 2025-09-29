@@ -1,6 +1,7 @@
 version: '3.8'
 services:
-  connected-dev:
+  # React Frontend
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -11,4 +12,43 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-    command: ["npm","start"]
+      - NODE_ENV=development
+      - REACT_APP_BACKEND_URL=http://localhost:8080/api
+      - REACT_APP_WEBSOCKET_URL=ws://localhost:8080/api/ws
+    depends_on:
+      - backend
+    networks:
+      - connections-network
+
+  # Java Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./db:/app/db  # Persistent SQLite database storage
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/db/connections.db
+    depends_on:
+      - db-init
+    networks:
+      - connections-network
+
+  # Service to ensure database directory exists and initialize DB
+  db-init:
+    image: alpine:latest
+    volumes:
+      - ./db:/app/db
+    command: ["sh", "-c", "mkdir -p /app/db && chmod 755 /app/db"]
+    networks:
+      - connections-network
+
+networks:
+  connections-network:
+    driver: bridge
+
+volumes:
+  db-data:

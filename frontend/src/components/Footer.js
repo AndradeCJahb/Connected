@@ -7,7 +7,7 @@ const Footer = () => (
         <br />
         <span>© {new Date().getFullYear()} Christopher Andrade</span>
         <br />
-        <span> <a className="footer-link" href="https://github.com/AndradeCJahb/andradecjahb.github.io" target="_blank" rel="noopener noreferrer">Source Code</a></span>
+        <span> <a className="footer-link" href="https://github.com/AndradeCJahb/Connected" target="_blank" rel="noopener noreferrer">Source Code</a></span>
     </div>
   </footer>
 );

@@ -1,11 +1,11 @@
 import '../css/Header.css';
 import Footer from './Footer.js';
-function Header({ activeSection, setActiveSection }) {
+function Header() {
 	return (
 		<header className="header">
 			<div className="header-content">
-				<h1 className="header-title">Connected</h1>
-				<p className="job-title">Collaborative NYT Connections</p>
+				<h1 className="app-title">Connected</h1>
+				<p className="app-description">Collaborative NYT Connections</p>
 				<Footer />
 			</div>
 		</header>

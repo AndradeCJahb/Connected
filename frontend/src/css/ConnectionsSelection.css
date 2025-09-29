@@ -1,0 +1,50 @@
+.main-content {
+  background: #24262a;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.content-container {
+  height: 100%;
+  width: 800px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20%;
+}
+
+.loading-message {
+  font: 'Courier', monospace;
+  margin-top: 15px;
+  font-size: 1rem;
+  color: #777777;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(112, 155, 208, 0.3);
+  border-radius: 50%;
+  border-top-color: rgb(112, 155, 208);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1000px) {
+  .App {
+    flex-direction: column;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+}
