@@ -1,0 +1,36 @@
+.solved-popup {
+    margin: 0 1.75rem;
+    border-left: #fff solid 4px;
+    background-color: #33363b;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+}
+
+.close-solved {
+    color: #fff;
+    float: right;
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: -.75rem;
+}
+
+.close-solved:hover {
+  color: #555555;
+}
+
+.solved-title {
+  color: #fff;
+  font-size: 1.5rem;
+  text-align: left;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+.solved-text {
+  font: 'Courier', monospace;
+  color: #fff;
+  font-size: 1rem;
+  text-align: left;
+  margin-bottom: 10px;
+}

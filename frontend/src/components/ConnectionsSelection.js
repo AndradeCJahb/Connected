@@ -16,6 +16,7 @@ const ConnectionsSelection = () => {
             if (data.type === "connections") {
                 setConnections(data.connections);
                 setLoadedConnections(true);
+                console.log("Connections data received:", data.connections);
             }
         };
 
@@ -27,9 +28,15 @@ const ConnectionsSelection = () => {
         };
     }, []);
     
-    const handlePuzzleSelect = (connectionsId) => {
+    const handleConnectionSelect = (connectionsId) => {
         navigate(`/connections/${connectionsId}`);
     };
+
+    const statuses = ({
+        0: "New",
+        1: "In Progress",
+        2: "Completed"
+    });
 
     return (
         <div>
@@ -39,22 +46,24 @@ const ConnectionsSelection = () => {
                         {!loadedConnections ? (
                             <div className="loading-container">
                                 <div className="loading-spinner"></div>
-                                <p className="loading-message">Spinning Up Database...</p>
+                                <p className="loading-message">Loading Puzzles...</p>
                             </div>
                         ) : (
-                            <div className="puzzle-grid">
+                            <div className="connections-grid">
                                 {connections.map((connection) => (
                                     <div
-                                        key={connections.id}
+                                        key={connection.id}
                                         className="connections-card"
-                                        onClick={() => handlePuzzleSelect(connections.id)}
+                                        onClick={() => handleConnectionSelect(connection.id)}
                                     >
-                                        <h3>{puzzle.title}</h3>
-                                        <div className="puzzle-meta">
+
+                                        <h3>{connection.date}</h3>
+                                        <div className="connections-meta">
                                             <span className="status">
-                                                {puzzle.status || "New"}
+                                                {statuses[connection.status]}
                                             </span>
                                         </div>
+                                        
                                     </div>
                                 ))}
                             </div>

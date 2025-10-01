@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import webSocketManager from "./components/WebSocketManager.js";
 import ConnectionsSelection from './components/ConnectionsSelection.js';
 import Header from './components/Header.js';
+import ConnectionGame from './components/ConnectionGame.js';
 
 import './css/index.css';
 
@@ -21,6 +22,7 @@ root.render(
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<ConnectionsSelection />} />
+                    <Route path="/connections/:connectionsId" element={<ConnectionGame />} />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
             </BrowserRouter>

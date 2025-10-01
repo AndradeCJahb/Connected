@@ -1,15 +1,10 @@
 .footer {
-    width: 100%;
-    background: #24262a;
     color: #aaa;
     text-align: center;
     padding: 1rem 0;
     font-size: 1rem;
     font-family: monospace;
-    position: relative;
-    bottom: 0;
-    left: 0;
-    z-index: 100;
+    margin-top: auto; /* This pushes footer to bottom of flex container */
 }
 
 .footer-content {

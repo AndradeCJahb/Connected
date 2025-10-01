@@ -16,7 +16,6 @@ class WebSocketManager {
                 console.log("Connected to WebSocket server");
                 this.isConnected = true;
 
-                // Process any queued messages
                 while (this.messageQueue.length > 0) {
                     const message = this.messageQueue.shift();
                     this.sendImmediately(message);

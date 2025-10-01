@@ -33,6 +33,42 @@
   animation: spin 1s ease-in-out infinite;
 }
 
+.connections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.connections-card {
+  background: #33363b;
+  border-left: 4px solid #fff;
+  font-size: 1.25rem;
+
+  padding: 0 1rem 1rem;
+  color: #fff;
+  margin: 2rem 2rem 0 2rem;
+}
+
+.connections-card:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.connections-card h3 {
+  color: #ffffff;
+}
+
+.connections-meta {
+  border: 2px solid #fff;
+  background-color: #24262a;
+  color: #fff;
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: .5rem;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

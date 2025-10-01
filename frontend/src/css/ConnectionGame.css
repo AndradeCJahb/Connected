@@ -1,0 +1,113 @@
+.connection-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 2rem;
+    color: white;
+}
+
+.title-date {
+    font-size: 2rem;
+    font-weight: 400;
+    color: #bbb;
+}
+
+.words-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    padding: 20px;
+}
+
+.word-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #33363b;
+    border-left: 4px solid #fff;
+
+    color: #fff;
+    font-size: 1.5rem;
+    text-align: center;
+
+    cursor: pointer;
+    transition: all .3s ease;
+    min-height: 6rem;
+    margin: .5rem;
+}
+
+.word-card:hover {
+    background-color: #e0e0e0;
+    border-color: #bbb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.word-card.selected {
+    background-color: #578fff;
+    border-color: #4a7ce8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(87, 143, 255, 0.3);
+}
+
+.word-card.selected:hover {
+    background-color: #4a7ce8;
+    border-color: #3d6bb8;
+}
+
+.word-card.correct {
+    background-color: #4CAF50;
+    border-color: #388E3C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+
+.button-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 20px;
+    padding-top: 0;
+}
+
+.clear-selection-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background: #ff4d4d;
+    border-left: 4px solid #ff0000;
+
+    color: #fff;
+    font-size: 1.5rem;
+    text-align: center;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 6rem;
+    margin: .5rem;
+
+    transition: background-color 0.3s ease;
+}
+
+.submit-selection-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background: #388E3C;
+    border-left: 4px solid #4CAF50;
+
+    color: #fff;
+    font-size: 1.5rem;
+    text-align: center;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 6rem;
+    margin: .5rem;
+
+    transition: background-color 0.3s ease;
+}

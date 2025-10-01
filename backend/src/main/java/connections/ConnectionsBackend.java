@@ -10,7 +10,6 @@ public class ConnectionsBackend {
         System.out.println("Starting server on port " + serverPort);
         try {
             server.start();          
-
             Thread.currentThread().join(); 
         } catch (Exception e) {
             e.printStackTrace();

@@ -6,10 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONArray;
@@ -25,6 +22,7 @@ import jakarta.websocket.server.ServerEndpoint;
 @ServerEndpoint("/ws")
 public class WebSocketServer {
     private static final Map<UUID, Player> players = new ConcurrentHashMap<>();
+    private static final Map<Integer, ConnectionSession> connectionSessions = new ConcurrentHashMap<>();
     private static final String DB_URL = "jdbc:sqlite:../db/connections.db";
 
     @OnOpen
@@ -46,14 +44,20 @@ public class WebSocketServer {
                 case "fetchIdentity":
                     handleIdentity(session, jsonMessage);
                     break;
-                case "fetchPuzzle":
-                    //handleFetchPuzzle(jsonMessage);
+                case "fetchConnectionSession":
+                    handleFetchConnectionSession(jsonMessage, session);
                     break;
-                case "sendPlayerPosition":
-                    //handleSendPlayerPosition(session, jsonMessage);
+                case "sendWordToggleSelection":
+                    handleSendWordToggleSelection(session, jsonMessage);
                     break;
                 case "sendLeaveRoom":
-                    //handleSendLeaveRoom(jsonMessage);
+                    handleSendLeaveRoom(jsonMessage);
+                    break;
+                case "sendSubmitWordSelection":
+                    handleSendSubmitWordSelection(session, jsonMessage);
+                    break;
+                case "sendClearWordSelection":
+                    handleSendClearWordSelection(session, jsonMessage);
                     break;
                 default:
                     System.out.println("Unknown request type: " + requestType);
@@ -68,14 +72,7 @@ public class WebSocketServer {
         System.out.println("Connection closed: " + session.getId());
         for(Player currPlayer : players.values()) {
             if (currPlayer.getSession().equals(session)) {
-                Integer puzzleId = currPlayer.getCurrentConnectionsId();
                 currPlayer.setCurrentConnectionsId(null);
-
-                if (puzzleId != null) {
-                    //broadcastPlayerPosition(puzzleId);
-                    //broadcastPlayers(puzzleId);
-                }
-
                 break;
             }
         }
@@ -99,8 +96,7 @@ public class WebSocketServer {
                 JSONObject connection = new JSONObject();
                 connection.put("id", resultSet.getInt("id"));
                 connection.put("date", resultSet.getString("date"));
-                connection.put("words", resultSet.getString("words"));
-                connection.put("categories", resultSet.getString("categories"));
+                connection.put("status", resultSet.getInt("status"));
 
                 connections.put(connection);
             }
@@ -147,20 +143,101 @@ public class WebSocketServer {
         }
     }
 
-    // private void handleFetchPuzzle(JSONObject jsonMessage) {
-    //     UUID clientId = UUID.fromString(jsonMessage.getString("clientId"));
-    //     int puzzleId = jsonMessage.getInt("puzzleId");
+    private void handleFetchConnectionSession(JSONObject jsonMessage, Session session) {
+        UUID clientId = UUID.fromString(jsonMessage.getString("clientId"));
+        int connectionId = jsonMessage.getInt("connectionId");
 
-    //     players.get(clientId).setCurrentConnectionsId(puzzleId);
+        players.get(clientId).setCurrentConnectionsId(connectionId);
         
-    //     if (!boards.containsKey(puzzleId)) {
-    //         boards.put(puzzleId, new Board(puzzleId));
-    //     }
+        if (!connectionSessions.containsKey(connectionId)) {
+            connectionSessions.put(connectionId, new ConnectionSession(connectionId));
+        }
 
-    //     broadcastPlayerPosition(puzzleId);
-    //     broadcastPlayers(puzzleId);
-    // }
+        JSONObject response = new JSONObject();
+        response.put("type", "getWords");
+        response.put("words", connectionSessions.get(connectionId).getWords());
+        response.put("date", connectionSessions.get(connectionId).getDateString());
+        
+        try {
+            session.getBasicRemote().sendText(response.toString());
+        } catch (IOException e) {
+            System.err.println("Error sending identity response: " + e.getMessage());
+            e.printStackTrace();
+        }
 
+    }
+
+    private void handleSendWordToggleSelection(Session session, JSONObject jsonMessage) {
+        Integer connectionId = jsonMessage.getInt("connectionId");
+        String word = jsonMessage.getString("word");
+
+        if(!connectionSessions.containsKey(connectionId)) {
+            connectionSessions.put(connectionId, new ConnectionSession(connectionId));
+        }
+
+        connectionSessions.get(connectionId).toggleWord(word);
+        updateSelectedWords(session, connectionId);
+    }
+
+    private void updateSelectedWords(Session session, int connectionId) {
+        Set<String> selectedWords = connectionSessions.get(connectionId).getSelectedWords();
+
+        JSONObject response = new JSONObject();
+        response.put("type", "updateSelectedWords");
+        response.put("selectedWords", selectedWords);
+
+        try {
+            session.getBasicRemote().sendText(response.toString());
+        } catch (IOException e) {
+            System.err.println("Error sending updated words: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void handleSendLeaveRoom(JSONObject jsonMessage) {
+        Player player = players.get(UUID.fromString(jsonMessage.getString("clientId")));
+        if (player == null) {
+            return;
+        }
+        ConnectionSession currSession = connectionSessions.get(player.getCurrentConnectionsId());
+        currSession.clearSession();
+        player.setCurrentConnectionsId(null);
+    }
+
+    private void handleSendSubmitWordSelection(Session session, JSONObject jsonMessage) {
+        Integer connectionId = jsonMessage.getInt("connectionId");
+
+        if(!connectionSessions.containsKey(connectionId)) {
+            connectionSessions.put(connectionId, new ConnectionSession(connectionId));
+        }
+
+        if(connectionSessions.get(connectionId).checkSelection()) {
+            Set<String> correctWords = connectionSessions.get(connectionId).getSelectedWords();
+
+            JSONObject response = new JSONObject();
+            response.put("type", "updateWordSelectionResult");
+            response.put("correctWords", correctWords);
+            response.put("allWordsCorrect", connectionSessions.get(connectionId).areAllCategoriesCorrect());
+
+            try {
+                session.getBasicRemote().sendText(response.toString());
+            } catch (IOException e) {
+                System.err.println("Error sending word selection result: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void handleSendClearWordSelection(Session session, JSONObject jsonMessage) {
+        Integer connectionId = jsonMessage.getInt("connectionId");
+
+        if(!connectionSessions.containsKey(connectionId)) {
+            connectionSessions.put(connectionId, new ConnectionSession(connectionId));
+        }
+
+        connectionSessions.get(connectionId).clearSelectedWords();
+        updateSelectedWords(session, connectionId);
+    }
     // private void broadcastPlayers(int puzzleId) {
     //     List<Player> playersInPuzzle = getPlayersInPuzzle(puzzleId);
     //     JSONArray playersArray = new JSONArray();
@@ -269,18 +346,5 @@ public class WebSocketServer {
     //     }
     // }
 
-    // private void handleSendLeaveRoom(JSONObject jsonMessage) {
-    //     Player player = players.get(UUID.fromString(jsonMessage.getString("clientId")));
-    //     if (player == null) {
-    //         return;
-    //     }
-    //     int puzzleId = jsonMessage.getInt("puzzleId");
 
-    //     player.setCurrentConnectionsId(null);
-
-    //     if (puzzleId != -1) {
-    //         broadcastPlayerPosition(puzzleId);
-    //         broadcastPlayers(puzzleId);
-    //     }
-    // }
 }
