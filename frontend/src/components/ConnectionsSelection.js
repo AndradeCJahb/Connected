@@ -13,7 +13,7 @@ const ConnectionsSelection = () => {
 
     useEffect(() => {
         const handleMessage = (data) => {
-            if (data.type === "connections") {
+            if (data.type === "updateAllConnections") {
                 setConnections(data.connections);
                 setLoadedConnections(true);
                 console.log("Connections data received:", data.connections);
@@ -21,7 +21,7 @@ const ConnectionsSelection = () => {
         };
 
         webSocketManager.addListener(handleMessage);
-        webSocketManager.send({ type: "fetchConnections" });
+        webSocketManager.send({ type: "fetchAllConnections" });
 
         return () => {
             webSocketManager.removeListener(handleMessage);

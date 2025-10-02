@@ -1,5 +1,5 @@
 .solved-popup {
-    margin: 0 1.75rem;
+    margin: 1rem 1.75rem;
     border-left: #fff solid 4px;
     background-color: #33363b;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -7,12 +7,10 @@
 }
 
 .close-solved {
-    color: #fff;
-    float: right;
-    font-size: 2rem;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: -.75rem;
+  color: #fff;
+  font-size: 1.5rem;
+  text-align: left;
+  font-weight: bold;
 }
 
 .close-solved:hover {

@@ -19,6 +19,7 @@ public class ConnectionSession {
     private Category[] categories = null;
     private Set<String> selectedWords = new HashSet<>();
     private int correctCategories = 0;
+    private Set<Player> playerList = new HashSet<>();
     
     public ConnectionSession(int connectionId) {
         this.connectionId = connectionId;
@@ -131,9 +132,21 @@ public class ConnectionSession {
         this.selectedWords.clear();
     }
 
-    public void clearSession() {
+    public void resetSession() {
         this.selectedWords.clear();
         this.correctCategories = 0;
         Collections.shuffle(this.words, new Random(System.currentTimeMillis()));
+    }
+
+    public void removePlayer(Player player) {
+        this.playerList.remove(player);
+    }
+
+    public void addPlayer(Player player) {
+        this.playerList.add(player);
+    }
+
+    public Set<Player> getPlayerList() {
+        return this.playerList;
     }
 }

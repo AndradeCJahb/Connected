@@ -33,6 +33,8 @@ function ConnectionGame() {
     const [selectedWords, setSelectedWords] = useState([]);
     const [correctWords, setCorrectWords] = useState([]);
     const [allWordsCorrect, setAllWordsCorrect] = useState(false);
+    const [playerCount, setPlayerCount] = useState(0);
+    const [numVotes, setNumVotes] = useState(0);
 
     const handleWordSelection = (word) => {
         webSocketManager.send({
@@ -51,15 +53,24 @@ function ConnectionGame() {
     };
 
     const handleSubmitWordSelection = () => {
-        webSocketManager.send({
-            type: "sendSubmitWordSelection",
-            connectionId: connectionId,
-            selectedWords: selectedWords
-        });
-        handleClearWordSelection();
+        setNumVotes(numVotes + 1);
+        if (numVotes + 1 > playerCount) {
+            webSocketManager.send({
+                type: "sendSubmitWordSelection",
+                connectionId: connectionId,
+                selectedWords: selectedWords
+            });
+            handleClearWordSelection();
+        }
     };
 
-    console.log(connectionId);
+    const handleResetConnection = () => {
+        webSocketManager.send({
+            type: "sendResetConnectionGame",
+            connectionId: connectionId,
+            clientId: clientId
+        });
+    };
     
     useEffect(() => {
         webSocketManager.send({ type: "fetchIdentity", clientId });
@@ -69,7 +80,7 @@ function ConnectionGame() {
     useEffect(() => {
         const handleMessage = (data) => {
             console.log("Received message:", data);
-            if (data.type === "getWords") {
+            if (data.type === "updateWords") {
                 setWords(data.words);
                 setDate(data.date);
             } else if (data.type === "updatePlayers") {
@@ -79,31 +90,40 @@ function ConnectionGame() {
             } else if (data.type === "updateWordSelectionResult") {
                 setCorrectWords((prevCorrectWords) => [...prevCorrectWords, ...data.correctWords]);
                 setAllWordsCorrect(data.allWordsCorrect);
-                webSocketManager.send({ type: "fetchConnectionSession", clientId, connectionId });
+                webSocketManager.send({ type: "fetchReorganizedWords", connectionId });
+            } else if (data.type === "updateResetConnectionGame") {
+                setCorrectWords([]);
+                setAllWordsCorrect(false);
+                setSelectedWords([]);
+            } else if (data.type === "updatePlayerCount") {
+                setPlayerCount(data.numberPlayersConnectionSession);
+            } else if(data.type === "updateClearCorrectWords") {
+                setCorrectWords([]); 
+                setAllWordsCorrect(false);
             }
     };
 
     webSocketManager.addListener(handleMessage);
 
     return () => {
-        webSocketManager.removeListener(handleMessage, connectionId);
+        webSocketManager.removeListener(handleMessage);
         webSocketManager.send({
             type: "sendLeaveRoom",
             clientId: clientId,
             connectionId: connectionId,
         });
     };
-
     }, [connectionId, navigate]);
 
     return (
         <main className="main-content">
             <div className="content-container">
                 <h1 className="connection-title">Connected <span className="title-date">{date}</span></h1>
+
                 <SolvedConnectionPopup
                     visible={allWordsCorrect}
-                    onClose={() => setAllWordsCorrect(false)}
                 />
+
                 <div className="words-grid">
                     {words.map((word, index) => (
                         <div 
@@ -115,9 +135,26 @@ function ConnectionGame() {
                         </div>
                     ))}
                 </div>
-                <div className="button-container">
-                    <div className="clear-selection-button" onClick={handleClearWordSelection}>Clear Selection</div>
-                    <div className="submit-selection-button" onClick={handleSubmitWordSelection}>Submit Selection</div>
+
+                {allWordsCorrect && (
+                    <div className="reset-button-container">
+                        <div className="reset-connection-button" onClick={handleResetConnection}>Play Again</div>
+                    </div>
+                )}
+
+                {!allWordsCorrect && (
+                    <div className="button-container">
+                        <div className="clear-selection-button" onClick={handleClearWordSelection}>Clear Selection</div>
+                        <div className="submit-selection-button" onClick={handleSubmitWordSelection}>Submit Selection ({numVotes}/{playerCount})</div>
+                    </div>
+                )}
+
+                <div className="player-count-container">
+                    <div>
+                        <div className="head"></div>
+                        <div className="body"></div>
+                    </div>
+                    <div className="player-count-number">{playerCount}</div>
                 </div>
             </div>
         </main>
