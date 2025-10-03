@@ -17,9 +17,13 @@ public class ConnectionSession {
     private String date;
     private List<String> words = new ArrayList<>();
     private Category[] categories = null;
-    private Set<String> selectedWords = new HashSet<>();
     private int correctCategories = 0;
+
+    private Set<String> selectedWords = new HashSet<>();
+
     private Set<Player> playerList = new HashSet<>();
+    private Set<Player> requestCheckWordSelectionPlayers = new HashSet<>();
+    private List<String> correctWords = new ArrayList<>();
     
     public ConnectionSession(int connectionId) {
         this.connectionId = connectionId;
@@ -69,21 +73,8 @@ public class ConnectionSession {
         }
     }
 
-    public List<String> getWords() {
-        return this.words;
-    }
-
-    public String getDateString() {
-        if (this.date == null) {
-            return null;
-        }
-
-        String[] dateParts = this.date.split("-");
-        int year = Integer.parseInt(dateParts[0]);
-        int month = Integer.parseInt(dateParts[1]);
-        int day = Integer.parseInt(dateParts[2]);
-        
-        return monthNames[month - 1] + " " + day + ", " + year;
+    public int getVoteCount() {
+        return requestCheckWordSelectionPlayers.size();
     }
 
     public boolean checkSelection() {
@@ -95,9 +86,13 @@ public class ConnectionSession {
             if (category.check(this.selectedWords)) {
                 reorganizeWords();
                 correctCategories++;
+                this.correctWords.addAll(this.selectedWords);
                 return true;
             }
         }
+
+        clearSelectedWords();
+        clearRequestCheckWordSelectionPlayers();
         return false;
     }
 
@@ -124,12 +119,28 @@ public class ConnectionSession {
         }
     }
 
+    public boolean sufficientRequestCheckWordSelection (Player player) {
+        if(requestCheckWordSelectionPlayers.contains(player)) {
+            requestCheckWordSelectionPlayers.remove(player);
+        } else  {
+            requestCheckWordSelectionPlayers.add(player);
+            System.out.println(Arrays.toString(requestCheckWordSelectionPlayers.toArray()));
+            return requestCheckWordSelectionPlayers.size() > playerList.size() / 2;
+        }
+        System.out.println(Arrays.toString(requestCheckWordSelectionPlayers.toArray()));
+        return false;
+    }
+
     public Set<String> getSelectedWords() {
         return this.selectedWords;
     }
 
     public void clearSelectedWords() {
         this.selectedWords.clear();
+    }
+
+    public void clearRequestCheckWordSelectionPlayers() {
+        this.requestCheckWordSelectionPlayers.clear();
     }
 
     public void resetSession() {
@@ -148,5 +159,26 @@ public class ConnectionSession {
 
     public Set<Player> getPlayerList() {
         return this.playerList;
+    }
+
+    public List<String> getWords() {
+        return this.words;
+    }
+
+    public String getDateString() {
+        if (this.date == null) {
+            return null;
+        }
+
+        String[] dateParts = this.date.split("-");
+        int year = Integer.parseInt(dateParts[0]);
+        int month = Integer.parseInt(dateParts[1]);
+        int day = Integer.parseInt(dateParts[2]);
+
+        return monthNames[month - 1] + " " + day + ", " + year;
+    }
+
+    public List<String> getCorrectWords() {
+        return this.correctWords;
     }
 }

@@ -34,7 +34,7 @@ function ConnectionGame() {
     const [correctWords, setCorrectWords] = useState([]);
     const [allWordsCorrect, setAllWordsCorrect] = useState(false);
     const [playerCount, setPlayerCount] = useState(0);
-    const [numVotes, setNumVotes] = useState(0);
+    const [voteCount, setVoteCount] = useState(0);
 
     const handleWordSelection = (word) => {
         webSocketManager.send({
@@ -53,15 +53,11 @@ function ConnectionGame() {
     };
 
     const handleSubmitWordSelection = () => {
-        setNumVotes(numVotes + 1);
-        if (numVotes + 1 > playerCount) {
-            webSocketManager.send({
-                type: "sendSubmitWordSelection",
-                connectionId: connectionId,
-                selectedWords: selectedWords
-            });
-            handleClearWordSelection();
-        }
+        webSocketManager.send({
+            type: "sendSubmitSelectionRequest",
+            connectionId: connectionId,
+            clientId: clientId
+        });
     };
 
     const handleResetConnection = () => {
@@ -75,6 +71,8 @@ function ConnectionGame() {
     useEffect(() => {
         webSocketManager.send({ type: "fetchIdentity", clientId });
         webSocketManager.send({ type: "fetchConnectionSession", clientId, connectionId });
+        webSocketManager.send({ type: "fetchCorrectWords", connectionId });
+        webSocketManager.send({ type: "fetchSelectedWords", connectionId });
     }, [connectionId, navigate]);
 
     useEffect(() => {
@@ -100,6 +98,10 @@ function ConnectionGame() {
             } else if(data.type === "updateClearCorrectWords") {
                 setCorrectWords([]); 
                 setAllWordsCorrect(false);
+            } else if(data.type ==="updateVoteCount") {
+                setVoteCount(data.voteCount);
+            } else if (data.type === "updateCorrectWords") {
+                setCorrectWords(data.correctWords);
             }
     };
 
@@ -145,7 +147,7 @@ function ConnectionGame() {
                 {!allWordsCorrect && (
                     <div className="button-container">
                         <div className="clear-selection-button" onClick={handleClearWordSelection}>Clear Selection</div>
-                        <div className="submit-selection-button" onClick={handleSubmitWordSelection}>Submit Selection ({numVotes}/{playerCount})</div>
+                        <div className="submit-selection-button" onClick={handleSubmitWordSelection}>Submit Selection ({voteCount}/{playerCount})</div>
                     </div>
                 )}
 
