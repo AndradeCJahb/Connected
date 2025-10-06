@@ -214,14 +214,19 @@ public class WebSocketServer {
     }
 
     private void handleSendLeaveRoom(JSONObject jsonMessage) {
-        Player player = players.get(UUID.fromString(jsonMessage.getString("clientId")));
+        UUID clientId = UUID.fromString(jsonMessage.getString("clientId"));
+        int connectionId = jsonMessage.getInt("connectionId");
 
-        int connectionId = player.getCurrentConnectionsId();
+        Player player = players.get(clientId);
+
         connectionSessions.get(connectionId).removePlayer(player);
-        updatePlayerCount(connectionId);
+        connectionSessions.get(connectionId).clearRequestCheckWordSelectionPlayers();
 
         player.setCurrentConnectionsId(null);
         player.setSession(null);
+
+        updatePlayerCount(connectionId);
+        updateVoteCount(connectionId);
     }
 
     private void handleSendClearWordSelection(JSONObject jsonMessage) {
@@ -289,6 +294,11 @@ public class WebSocketServer {
         }
 
         updateSelectedWords(connectionId);
+        updateVoteCount(connectionId);
+    }
+
+    private void updateVoteCount(int connectionId) {
+        ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
 
         JSONObject response = new JSONObject();
         response.put("type", "updateVoteCount");

@@ -8,7 +8,7 @@ public class Category {
     private final String categoryDescription;
     private final int difficulty;
     private final Set<String> words;
-    private final String[] difficultyColor= {"ffdb58","50c878","b272e0","468fea"};
+    private final String[] difficultyColor = {"ffdb58","50c878","b272e0","468fea"};
 
     public Category(String categoryDescription, int difficulty, String[] words) {
         this.categoryDescription = categoryDescription;

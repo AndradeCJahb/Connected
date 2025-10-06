@@ -19,10 +19,10 @@ public class ConnectionSession {
     private Category[] categories = null;
     private int correctCategories = 0;
 
-    private Set<String> selectedWords = new HashSet<>();
-
     private Set<Player> playerList = new HashSet<>();
     private Set<Player> requestCheckWordSelectionPlayers = new HashSet<>();
+
+    private Set<String> selectedWords = new HashSet<>();
     private List<String> correctWords = new ArrayList<>();
     
     public ConnectionSession(int connectionId) {
@@ -127,7 +127,6 @@ public class ConnectionSession {
             System.out.println(Arrays.toString(requestCheckWordSelectionPlayers.toArray()));
             return requestCheckWordSelectionPlayers.size() > playerList.size() / 2;
         }
-        System.out.println(Arrays.toString(requestCheckWordSelectionPlayers.toArray()));
         return false;
     }
 
@@ -144,8 +143,10 @@ public class ConnectionSession {
     }
 
     public void resetSession() {
-        this.selectedWords.clear();
+        clearSelectedWords();
+        clearRequestCheckWordSelectionPlayers();
         this.correctCategories = 0;
+        this.correctWords.clear();
         Collections.shuffle(this.words, new Random(System.currentTimeMillis()));
     }
 
