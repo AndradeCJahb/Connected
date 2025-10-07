@@ -23,7 +23,7 @@ public class ConnectionSession {
     private Set<Player> requestCheckWordSelectionPlayers = new HashSet<>();
 
     private Set<String> selectedWords = new HashSet<>();
-    private List<String> correctWords = new ArrayList<>();
+    private Set<String> correctWords = new HashSet<>();
     
     public ConnectionSession(int connectionId) {
         this.connectionId = connectionId;
@@ -97,7 +97,7 @@ public class ConnectionSession {
     }
 
     public boolean areAllCategoriesCorrect() {
-        return this.correctCategories ==4;
+        return this.correctCategories == 4;
     }
 
     private void reorganizeWords() {
@@ -124,7 +124,6 @@ public class ConnectionSession {
             requestCheckWordSelectionPlayers.remove(player);
         } else  {
             requestCheckWordSelectionPlayers.add(player);
-            System.out.println(Arrays.toString(requestCheckWordSelectionPlayers.toArray()));
             return requestCheckWordSelectionPlayers.size() > playerList.size() / 2;
         }
         return false;
@@ -152,6 +151,7 @@ public class ConnectionSession {
 
     public void removePlayer(Player player) {
         this.playerList.remove(player);
+        this.requestCheckWordSelectionPlayers.clear();
     }
 
     public void addPlayer(Player player) {
@@ -179,7 +179,7 @@ public class ConnectionSession {
         return monthNames[month - 1] + " " + day + ", " + year;
     }
 
-    public List<String> getCorrectWords() {
+    public Set<String> getCorrectWords() {
         return this.correctWords;
     }
 }

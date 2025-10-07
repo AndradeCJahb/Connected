@@ -70,25 +70,24 @@ function ConnectionGame() {
     
     useEffect(() => {
         webSocketManager.send({ type: "fetchIdentity", clientId });
-        webSocketManager.send({ type: "fetchConnectionSession", clientId, connectionId });
+        webSocketManager.send({ type: "fetchBaseConnectionSession", clientId, connectionId });
         webSocketManager.send({ type: "fetchCorrectWords", connectionId });
         webSocketManager.send({ type: "fetchSelectedWords", connectionId });
+        webSocketManager.send({ type: "fetchVoteCount", connectionId });
     }, [connectionId, navigate]);
 
     useEffect(() => {
         const handleMessage = (data) => {
             console.log("Received message:", data);
-            if (data.type === "updateWords") {
+            if (data.type === "updateBaseConnectionSession") {
                 setWords(data.words);
                 setDate(data.date);
-            } else if (data.type === "updatePlayers") {
-                setPlayers(data.players);
+            } else if(data.type ==="updateVoteCount") {
+                setVoteCount(data.voteCount);
+            } else if (data.type === "updateCorrectWords") {
+                setCorrectWords(data.correctWords);
             } else if (data.type === "updateSelectedWords") {
                 setSelectedWords(data.selectedWords);
-            } else if (data.type === "updateWordSelectionResult") {
-                setCorrectWords((prevCorrectWords) => [...prevCorrectWords, ...data.correctWords]);
-                setAllWordsCorrect(data.allWordsCorrect);
-                webSocketManager.send({ type: "fetchReorganizedWords", connectionId });
             } else if (data.type === "updateResetConnectionGame") {
                 setCorrectWords([]);
                 setAllWordsCorrect(false);
@@ -98,12 +97,12 @@ function ConnectionGame() {
             } else if(data.type === "updateClearCorrectWords") {
                 setCorrectWords([]); 
                 setAllWordsCorrect(false);
-            } else if(data.type ==="updateVoteCount") {
-                setVoteCount(data.voteCount);
-            } else if (data.type === "updateCorrectWords") {
+            } else if (data.type === "updateReorganizedWords") {
+                setWords(data.words);
                 setCorrectWords(data.correctWords);
+                setAllWordsCorrect(data.allWordsCorrect);
             }
-    };
+        };
 
     webSocketManager.addListener(handleMessage);
 

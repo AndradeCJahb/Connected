@@ -40,8 +40,8 @@ public class WebSocketServer {
                 case "fetchIdentity":
                     handleIdentity(session, jsonMessage);
                     break;
-                case "fetchConnectionSession":
-                    handleFetchConnectionSession(session, jsonMessage);
+                case "fetchBaseConnectionSession":
+                    handleFetchBaseConnectionSession(session, jsonMessage);
                     break;
                 case "fetchReorganizedWords":
                     handleFetchReorganizedWords(session, jsonMessage);
@@ -59,13 +59,16 @@ public class WebSocketServer {
                     handleSendClearWordSelection(jsonMessage);
                     break;
                 case "sendResetConnectionGame":
-                    handleSendResetConnectionGame(session, jsonMessage);
+                    handleSendResetConnectionGame(jsonMessage);
                     break;
                 case "sendSubmitSelectionRequest":
                     handleSendSubmitWordSelectionRequest(jsonMessage);
                     break;
                 case "fetchSelectedWords":
                     handleFetchSelectedWords(session, jsonMessage);
+                    break;
+                case "fetchVoteCount":
+                    handleFetchVoteCount(session, jsonMessage);
                     break;
                 default:
                     System.out.println("Unknown request type: " + requestType);
@@ -147,7 +150,7 @@ public class WebSocketServer {
         players.putIfAbsent(clientId, new Player(session));
     }
 
-    private void handleFetchConnectionSession(Session session, JSONObject jsonMessage) {
+    private void handleFetchBaseConnectionSession(Session session, JSONObject jsonMessage) {
         UUID clientId = UUID.fromString(jsonMessage.getString("clientId"));
         int connectionId = jsonMessage.getInt("connectionId");
 
@@ -161,10 +164,10 @@ public class WebSocketServer {
         currPlayer.setSession(session);
 
         updatePlayerCount(currPlayer.getCurrentConnectionsId());
-        updateCorrectWords(connectionId, currConnectionSession.getCorrectWords());
+        updateCorrectWords(connectionId);
 
         JSONObject response = new JSONObject();
-        response.put("type", "updateWords");
+        response.put("type", "updateBaseConnectionSession");
         response.put("words", currConnectionSession.getWords());
         response.put("date", currConnectionSession.getDateString());
 
@@ -214,19 +217,22 @@ public class WebSocketServer {
     }
 
     private void handleSendLeaveRoom(JSONObject jsonMessage) {
-        UUID clientId = UUID.fromString(jsonMessage.getString("clientId"));
+        Player player = players.get(UUID.fromString(jsonMessage.getString("clientId")));
         int connectionId = jsonMessage.getInt("connectionId");
 
-        Player player = players.get(clientId);
+        ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
 
-        connectionSessions.get(connectionId).removePlayer(player);
-        connectionSessions.get(connectionId).clearRequestCheckWordSelectionPlayers();
+        currConnectionSession.removePlayer(player);
+        updatePlayerCount(connectionId);
+
+        JSONObject response = new JSONObject();
+        response.put("type", "updateVoteCount");
+        response.put("voteCount", currConnectionSession.getVoteCount());
+
+        broadCastConnectionSessionJson(connectionId, response);
 
         player.setCurrentConnectionsId(null);
         player.setSession(null);
-
-        updatePlayerCount(connectionId);
-        updateVoteCount(connectionId);
     }
 
     private void handleSendClearWordSelection(JSONObject jsonMessage) {
@@ -238,24 +244,27 @@ public class WebSocketServer {
         updateSelectedWords(connectionId);
     }
 
-    private void handleSendResetConnectionGame(Session session, JSONObject jsonMessage) {
+    private void handleSendResetConnectionGame(JSONObject jsonMessage) {
         int connectionId = jsonMessage.getInt("connectionId");
         connectionSessions.get(connectionId).resetSession();
 
         updateSelectedWords(connectionId);
-        updateCorrectWords(connectionId, new ArrayList<>());
+        updateCorrectWords(connectionId);
 
-        JSONObject response = new JSONObject();
+        JSONObject response = new JSONObject    ();
         response.put("type", "updateClearCorrectWords");
 
         broadCastConnectionSessionJson(connectionId, response);
     }
 
-    private void updateCorrectWords(int connectionId, List<String> correctWords) {
+    private void updateCorrectWords(int connectionId) {
+        ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
+        Set<String> correctWords = currConnectionSession.getCorrectWords();
         JSONObject response = new JSONObject();
-        response.put("type", "updateWordSelectionResult");
+        response.put("type", "updateReorganizedWords");
+        response.put("words", currConnectionSession.getWords());
         response.put("correctWords", correctWords);
-        response.put("allWordsCorrect", connectionSessions.get(connectionId).areAllCategoriesCorrect());
+        response.put("allWordsCorrect", currConnectionSession.areAllCategoriesCorrect());
 
         broadCastConnectionSessionJson(connectionId, response);
     }
@@ -267,9 +276,10 @@ public class WebSocketServer {
         ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
 
         JSONObject response = new JSONObject();
-        response.put("type", "updateWords");
+        response.put("type", "updateReorganizedWords");
         response.put("words", currConnectionSession.getWords());
-        response.put("date", currConnectionSession.getDateString());
+        response.put("correctWords", currConnectionSession.getCorrectWords());
+        response.put("allWordsCorrect", currConnectionSession.areAllCategoriesCorrect());
 
         try {
             session.getBasicRemote().sendText(response.toString());
@@ -286,19 +296,13 @@ public class WebSocketServer {
         ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
         if (currConnectionSession.sufficientRequestCheckWordSelection(players.get(clientId))) {
             if (currConnectionSession.checkSelection()) {
-                List<String> correctWords = connectionSessions.get(connectionId).getCorrectWords();
-                updateCorrectWords(connectionId, correctWords);
+                updateCorrectWords(connectionId);
             }
             currConnectionSession.clearSelectedWords();
             currConnectionSession.clearRequestCheckWordSelectionPlayers();
         }
 
         updateSelectedWords(connectionId);
-        updateVoteCount(connectionId);
-    }
-
-    private void updateVoteCount(int connectionId) {
-        ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
 
         JSONObject response = new JSONObject();
         response.put("type", "updateVoteCount");
@@ -340,22 +344,24 @@ public class WebSocketServer {
             e.printStackTrace();
         }
     }
+
+    public void handleFetchVoteCount(Session session, JSONObject jsonMessage) {
+        int connectionId = jsonMessage.getInt("connectionId");
+
+        ConnectionSession currConnectionSession = connectionSessions.get(connectionId);
+
+        JSONObject response = new JSONObject();
+        response.put("type", "updateVoteCount");
+        response.put("voteCount", currConnectionSession.getVoteCount());
+
+        try {
+            session.getBasicRemote().sendText(response.toString());
+        } catch (IOException e) {
+            System.err.println("Error sending vote count response: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
-    // private void broadcastSolvedBoard(int puzzleId) {
-    //     JSONObject response = new JSONObject();
-    //     response.put("type", "updatePuzzleSolved");
-    //     for (Player currentPlayer : players.values()) {
-    //         Session currentSession = currentPlayer.getSession();
-    //         if (currentSession.isOpen() && currentPlayer.getCurrentPuzzleId() == puzzleId) {
-    //             try {
-    //                 currentSession.getBasicRemote().sendText(response.toString());
-    //             } catch (IOException e) {
-    //                 System.err.println("Error sending updatePuzzleSolved" + e.getMessage());
-    //                 e.printStackTrace();
-    //             }
-    //         }
-    //     }
-    // }
 
 
 
