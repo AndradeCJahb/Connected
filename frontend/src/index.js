@@ -19,11 +19,11 @@ const getWebSocketUrl = () => {
     return `${protocol}://${host}:${port}/ws`;
   }
 
-  // For production on Vercel, use the WSL server IP
+  // For production on Vercel, use the WSL server IP with secure WebSocket through Caddy
   if (process.env.NODE_ENV === 'production') {
     const host = '192.168.4.25';
-    const port = '8080';  // Direct backend port, or use '80' if going through Caddy
-    return `ws://${host}:${port}/ws`;
+    const port = '443';  // Use Caddy's HTTPS port
+    return `wss://${host}:${port}/ws`;
   }
 
   // Default fallback for local development
