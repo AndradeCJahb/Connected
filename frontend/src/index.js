@@ -9,25 +9,10 @@ import ConnectionGame from './components/ConnectionGame.js';
 
 import './css/index.css';
 
-// Make WebSocket URL configurable via environment variables
+// WebSocket URL for cloudflared tunnel
 const getWebSocketUrl = () => {
-  // Check for environment variable (REACT_APP_BACKEND_HOST)
-  if (process.env.REACT_APP_BACKEND_HOST) {
-    const host = process.env.REACT_APP_BACKEND_HOST;
-    const port = process.env.REACT_APP_BACKEND_PORT || '8080';
-    const protocol = process.env.REACT_APP_BACKEND_SECURE === 'true' ? 'wss' : 'ws';
-    return `${protocol}://${host}:${port}/ws`;
-  }
-
-  // For production on Vercel, use the WSL server IP with secure WebSocket through Caddy
-  if (process.env.NODE_ENV === 'production') {
-    const host = '192.168.4.25';
-    const port = '443';  // Use Caddy's HTTPS port
-    return `wss://${host}:${port}/ws`;
-  }
-
-  // Default fallback for local development
-  return 'ws://localhost:8080/ws';
+  const host = 'metro-laser-harbor-dir.trycloudflare.com';
+  return `wss://${host}/ws`;
 };
 
 const wsUrl = getWebSocketUrl();

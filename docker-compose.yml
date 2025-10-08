@@ -34,16 +34,6 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
-  caddy:
-    image: caddy:2.7-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./etc/caddy/Caddyfile:/etc/caddy/Caddyfile
-
 volumes:
   db-data:
     driver: local
