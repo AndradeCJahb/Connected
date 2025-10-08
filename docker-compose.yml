@@ -1,26 +1,22 @@
-version: '3.8'
 services:
-  # React Frontend
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3001:3000"
+  db-init:
+    image: alpine:latest
     volumes:
-      - .:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - NODE_ENV=development
-      - REACT_APP_BACKEND_URL=http://localhost:8080/api
-      - REACT_APP_WEBSOCKET_URL=ws://localhost:8080/api/ws
-    depends_on:
-      - backend
-    networks:
-      - connections-network
+      - db-data:/app/db
+      - ./db/init.sql:/app/init.sql:ro
+    command: >
+      sh -c "
+        mkdir -p /app/db &&
+        if [ ! -f /app/db/connections.db ]; then
+          echo 'Initializing database...' &&
+          apk add --no-cache sqlite &&
+          sqlite3 /app/db/connections.db < /app/init.sql &&
+          echo 'Database initialized successfully'
+        else
+          echo 'Database already exists, skipping initialization'
+        fi
+      "
 
-  # Java Backend
   backend:
     build:
       context: ./backend
@@ -28,27 +24,26 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./db:/app/db  # Persistent SQLite database storage
+      - db-data:/app/db
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/db/connections.db
+      - DATABASE_URL=jdbc:sqlite:/app/db/connections.db
     depends_on:
-      - db-init
-    networks:
-      - connections-network
+      db-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
 
-  # Service to ensure database directory exists and initialize DB
-  db-init:
-    image: alpine:latest
+  caddy:
+    image: caddy:2.7-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
-      - ./db:/app/db
-    command: ["sh", "-c", "mkdir -p /app/db && chmod 755 /app/db"]
-    networks:
-      - connections-network
-
-networks:
-  connections-network:
-    driver: bridge
+      - ./etc/caddy/Caddyfile:/etc/caddy/Caddyfile
 
 volumes:
   db-data:
+    driver: local

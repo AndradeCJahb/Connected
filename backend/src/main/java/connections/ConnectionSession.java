@@ -7,7 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
     
 public class ConnectionSession {
-    private static final String DB_URL = "jdbc:sqlite:../db/connections.db";
+    private static final String DB_URL = System.getenv("DATABASE_URL") != null ?
+        System.getenv("DATABASE_URL") : "jdbc:sqlite:/app/db/connections.db";
     private static final String[] monthNames = {
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"

@@ -1,0 +1,7 @@
+# Use HTTP only since we're using IP address
+:80 {
+    reverse_proxy backend:8080 {
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection {http.request.header.Connection}
+    }
+}

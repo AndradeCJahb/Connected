@@ -19,7 +19,8 @@ import jakarta.websocket.server.ServerEndpoint;
 public class WebSocketServer {
     private static final Map<UUID, Player> players = new ConcurrentHashMap<>();
     private static final Map<Integer, ConnectionSession> connectionSessions = new ConcurrentHashMap<>();
-    private static final String DB_URL = "jdbc:sqlite:../db/connections.db";
+    private static final String DB_URL = System.getenv("DATABASE_URL") != null ?
+        System.getenv("DATABASE_URL") : "jdbc:sqlite:/app/db/connections.db";
 
     @OnOpen
     public void onOpen(Session session) {
@@ -362,6 +363,3 @@ public class WebSocketServer {
         }
     }
 }
-
-
-

@@ -2,8 +2,6 @@ package connections;
 
 import jakarta.websocket.Session;
 
-import java.util.Random;
-
 public class Player {
     private Session session;
     private Integer currentConnectionsId;
